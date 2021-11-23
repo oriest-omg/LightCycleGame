@@ -22,6 +22,7 @@ public class Player : MonoBehaviour
     [HideInInspector]
     public bool isAlive = true;
     Vector2 initialPos;
+
     private void Awake() {
         initialPos = transform.position;
         cam = Camera.main.GetComponent<Cam>();
