@@ -10,7 +10,7 @@ public class Player : MonoBehaviour
 
     public int speed; // vitesse de déplacement
 
-    Vector2 dir; // direction
+    public Vector2 dir; // direction
 
     GameObject wallPrefab; // Mur à instancier
     Vector2 lastPos;
@@ -23,6 +23,9 @@ public class Player : MonoBehaviour
     public bool isAlive = true;
     Vector2 initialPos;
 
+    // IA intelligence artificielle
+    Vector2 dirRight;
+
     private void Awake() {
         initialPos = transform.position;
         cam = Camera.main.GetComponent<Cam>();
@@ -31,6 +34,13 @@ public class Player : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        if(Random.Range(0,10)<6)
+        {
+            dir = Vector2.up; // Direction par défaut
+        }else
+        {
+            dir = Vector2.down;
+        }
         dir = Vector2.up;
         rb = GetComponent<Rigidbody2D>();
         rb.velocity = dir * speed  * gm.gameSpeed;
@@ -42,6 +52,13 @@ public class Player : MonoBehaviour
     void Update()
     {
         HandleKeys();
+        SetLastWallSize(lastWallCol,lastPos,transform.position);
+    }
+    // s'exécute une fois que les opérations physic on été executé
+    private void LateUpdate() 
+    {
+        HandleKeys();
+        rb.velocity = dir * speed * gm.gameSpeed;
         SetLastWallSize(lastWallCol,lastPos,transform.position);
     }
     private void OnTriggerEnter2D(Collider2D col) {
@@ -129,6 +146,8 @@ public class Player : MonoBehaviour
     {
         lastPos = transform.position;
        GameObject go = Instantiate(wallPrefab, transform.position,Quaternion.identity);
+       if(lastWallCol != null)
+       lastWallCol.gameObject.layer = 10; // wall // modifie layer
        lastWallCol = go.GetComponent<Collider2D>();
     }
 
@@ -152,5 +171,43 @@ public class Player : MonoBehaviour
         transform.position = initialPos;
         isAlive = true;
         dir = Vector2.up;
+    }
+
+    ///////////////////////////////////IA//////////////////////////
+    public void CalculateRight()
+    {
+        if(dir.x == 0 && dir.y == 1) // si on monte
+        {
+            dirRight = Vector2.right;
+        }
+        else if(dir.x == 1 && dir.y == 0) // si droite
+        {
+            dirRight = Vector2.down;
+        }
+        else if(dir.x == -1 && dir.y == 0)// si gauche
+        {
+            dirRight = Vector2.up;
+        }
+        else
+        {
+            dirRight = Vector2.left;
+        }
+    }
+
+    public Vector2 GetRightDir()
+    {
+        CalculateRight();
+        return dirRight;
+    }
+
+    public void TurnRight()
+    {
+        dir = GetRightDir();
+        CreateWall();
+    }
+    public void TurnLeft()
+    {
+        dir = -GetRightDir();
+        CreateWall();
     }
 }
